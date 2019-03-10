@@ -24,7 +24,7 @@ void bucketsort(long* array, long size, long max) {
 		B[array[i] / bucketsize].push_back(array[i]);
 	}
 	long array_pos = 0;
-	for (long i = 0; i < size / k; i++) {
+	for (long i = 0; i < size; i++) {
 		B[i] = sort(B[i]);
 		while (!B[i].empty()) {
 			array[array_pos] = B[i].back();
@@ -41,28 +41,32 @@ int main() {
 	input >> n >> m;
 
 	long *A = new long[n];
+	long maxA = 0;
 	for (int i = 0; i < n; i++) {
 		input >> A[i];
+		if (A[i] > maxA) {
+			maxA = A[i];
+		}
 	}
 	long *B = new long[m];
 	long *C = new long[n * m];
-	long max = 0;
+	long maxB = 0;
 	long pos;
 	for (int i = 0; i < m; i++) {
 		input >> B[i];
 		for (int j = 0; j < n; j++) {
 			pos = (i * n) + j;
 			C[pos] = B[i] * A[j];
-			if (C[pos] > max) {
-				max = C[pos];
-			}
+		}
+		if (B[i] > maxB) {
+			maxB = B[i];
 		}
 	}
 	input.close();
 	delete A;
 	delete B;
 
-	bucketsort(C, n*m, max);
+	bucketsort(C, n*m, maxA*maxB);
 
 	long long sum = 0;
 	for (int i = 0; i < n * m; i += 10) {
