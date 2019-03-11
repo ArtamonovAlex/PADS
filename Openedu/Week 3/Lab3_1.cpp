@@ -1,35 +1,35 @@
-#include <fstream>
-#include <vector>
+﻿#include <fstream>
 using namespace std;
 
-vector<long> sort(vector<long> list) {
-	long j;
-	long temp;
-	for (long i = list.size() - 2; i >= 0; i--) {
-		j = i;
-		while (j != list.size() - 1 && list[j] < list[j + 1]) {
-			temp = list[j];
-			list[j] = list[j + 1];
-			list[j + 1] = temp;
-			j++;
+//Цифровая сортировка, в качестве разряда выбран 1 байт
+void radix_sort(long *array, int size, int digit) {
+	long *output = new long[size];
+	long *count = new long[256];
+	//Сортируем побайтово начиная с правого байта
+	for (int pow = 0; pow <= digit; pow += 8) {
+		//Сортировка подсчётом
+		//1. Заполняем вспомогательный массив 0
+		for (int i = 0; i < 256; i++) {
+			count[i] = 0;
 		}
-	}
-	return list;
-}
+		//2. Для каждого элемента (байта) считаем количество в исходном массиве
+		for (int i = 0; i < size; i++) {
+			count[(array[i] >> pow) & 255]++;
+		}
+		//3. Увеличиваем каждый следующий элемент вспомогательного массива на предыдущий,
+		//в итоге под каждым элементом (байтом) хранится его позиция в отсортированном массиве
+		for (int i = 1; i < 256; i++) {
+			count[i] += count[i - 1];
+		}
+		//4. Заполняем новый массив проходя вспомоготельный с конца, при этом уменьшая количество равных элементов
+		//чтобы корректно записывать одинаковые элементы
+		for (int i = size - 1; i >= 0; i--) {
+			output[count[(array[i] >> pow) & 255] - 1] = array[i];
+			count[(array[i] >> pow) & 255]--;
+		}
 
-void bucketsort(long* array, long size, long max) {
-	vector<long> *B = new vector<long>[size];
-	long bucketsize = ((max / size) + 1);
-	for (long i = 0; i < size; i++) {
-		B[array[i] / bucketsize].push_back(array[i]);
-	}
-	long array_pos = 0;
-	for (long i = 0; i < size; i++) {
-		B[i] = sort(B[i]);
-		while (!B[i].empty()) {
-			array[array_pos] = B[i].back();
-			B[i].pop_back();
-			array_pos++;
+		for (int i = 0; i < size; i++) {
+			array[i] = output[i];
 		}
 	}
 }
@@ -41,32 +41,45 @@ int main() {
 	input >> n >> m;
 
 	long *A = new long[n];
+	long *B = new long[m];
+	long *C = new long[n * m];
+
 	long maxA = 0;
 	for (int i = 0; i < n; i++) {
 		input >> A[i];
+		//Находим максимальный элемент в первом массиве
 		if (A[i] > maxA) {
 			maxA = A[i];
 		}
 	}
-	long *B = new long[m];
-	long *C = new long[n * m];
 	long maxB = 0;
 	long pos;
+
 	for (int i = 0; i < m; i++) {
 		input >> B[i];
+		//Заполнсяем массив С
 		for (int j = 0; j < n; j++) {
 			pos = (i * n) + j;
 			C[pos] = B[i] * A[j];
 		}
+		//Находим максимальный элемент во втором массиве
 		if (B[i] > maxB) {
 			maxB = B[i];
 		}
 	}
 	input.close();
-	delete A;
-	delete B;
 
-	bucketsort(C, n*m, maxA*maxB);
+	long maxNum = maxA * maxB;
+	int digit = 1;
+	//Считаем количество битов в максимальном числе
+	while (maxNum >> digit > 0) {
+		digit++;
+	}
+	digit--;
+
+	radix_sort(C, n*m, digit);
+
+
 
 	long long sum = 0;
 	for (int i = 0; i < n * m; i += 10) {
