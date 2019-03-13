@@ -1,4 +1,4 @@
-#include <fstream>
+﻿#include <fstream>
 #include <queue>
 #include <string>
 #include <map>
@@ -9,8 +9,8 @@ int main() {
 	ifstream input("input.txt");
 	ofstream output("output.txt");
 
-	queue<int> MainQueue = {};
-	map<char, int> registers = {
+	queue<unsigned short> MainQueue = {};
+	map<char, unsigned short> registers = {
 		{'a', 0},
 		{'b', 0},
 		{'c', 0},
@@ -39,18 +39,23 @@ int main() {
 		{'z', 0}
 	};
 	map <string, long> labels;
-	string *commands = new string[100000];
-	long N = 0;
+	string *commands = new string[100001];
+	//Получаем список команд
+	long N = -1;
 	while (!input.eof()) {
-		input >> commands[N];
+		input >> commands[++N];
+		//Запоминаем все метки
 		if (commands[N][0] == ':') {
 			labels.insert(pair<string, long>(commands[N].substr(1), N));
 		}
-		N++;
+	}
+	if (commands[N].empty()) {
+		N--;
 	}
 	input.close();
+	//Указатель на команду в списке
 	long P = 0;
-	int a, b;
+	unsigned short a, b;
 
 	do {
 		switch (commands[P][0])
@@ -127,11 +132,11 @@ int main() {
 			break;
 		case 'C':
 			if (commands[P].size() == 1) {
-				output << (char)(MainQueue.front() % 256) << '\n';
+				output << (char)(MainQueue.front() % 256);
 				MainQueue.pop();
 			}
 			else {
-				output << (char)(registers[commands[P][1]] % 256) << '\n';
+				output << (char)(registers[commands[P][1]] % 256);
 			}
 			P++;
 			break;
@@ -167,12 +172,14 @@ int main() {
 			break;
 		case 'Q':
 			P = N;
+			P++;
 			break;
 		default:
 			MainQueue.push(stoi(commands[P]));
 			P++;
 		}
-	} while (P < N);
+		//Программа работает, пока не будет выполнена последняя команда
+	} while (P <= N);
 	output.close();
 
 	return 0;
